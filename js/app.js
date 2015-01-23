@@ -10,6 +10,7 @@ helpers.rows = 6;
 helpers.xTile = 101;
 helpers.yTile = 83;
 helpers.charHeight = 102;
+helpers.highScore = localStorage.highScore || 0;
 
 /**
  * Returns a random integer between min (inclusive) and max (inclusive)
@@ -48,6 +49,7 @@ helpers.checkIfStarCollected = function(player, star) {
     if (player.column === star.column && player.row === star.row) {
         player.collectStar();
         star.newPosition();
+        this.setHighScore(player.starCount);
     }
 };
 
@@ -62,6 +64,28 @@ helpers.checkForCollision = function(player, allEnemies) {
             player.reset();
         }
     });
+};
+
+/**
+ * Draws the highscore on the canvas
+ */
+helpers.showHighScore = function() {
+    ctx.fillStyle='yellow';
+    ctx.font = '30px Serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('Highscore: ' + this.highScore, this.xCanvas - 10, 100);
+};
+
+/**
+ * Sets the highscore
+ * @param {number} highscore
+ */
+helpers.setHighScore = function(highScore) {
+    if (highScore > this.highScore) {
+        this.highScore = highScore;
+        localStorage.highScore = highScore;
+        console.info('New highscore set! (' + highScore + ')');
+    }
 };
 
 
@@ -83,7 +107,7 @@ var Entity = function(sprite, column, row) {
 
 /**
  * Draw the entity on the screen
- * @param {boolean} render by x/y position instead of column/row
+ * @param {boolean} if true: render by x/y position instead of column/row
  */
 Entity.prototype.render = function(byXY) {
     var x, y;
@@ -202,9 +226,10 @@ Player.prototype.reset = function() {
  * Show/Update the player's score
  */
 Player.prototype.showScore = function() {
-    ctx.fillStyle="yellow";
-    ctx.font = "30px Serif";
-    ctx.fillText("Score: " + this.starCount, 10, 100);
+    ctx.fillStyle='yellow';
+    ctx.font = '30px Serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Score: ' + this.starCount, 10, 100);
 };
 
 /**

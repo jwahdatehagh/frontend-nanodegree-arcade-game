@@ -94,7 +94,7 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        
+
         // game logic
         helpers.checkIfStarCollected(player, star);
         helpers.checkForCollision(player, allEnemies);
@@ -156,6 +156,7 @@ var Engine = (function(global) {
         });
         player.render();
         player.showScore();
+        helpers.showHighScore();
         star.render();
     }
 
