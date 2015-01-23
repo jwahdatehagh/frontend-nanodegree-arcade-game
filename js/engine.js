@@ -94,7 +94,10 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        player.update();
+        
+        // game logic
+        helpers.checkIfStarCollected(player, star);
+        helpers.checkForCollision(player, allEnemies);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -108,12 +111,12 @@ var Engine = (function(global) {
          * for that particular row of the game level.
          */
         var rowImages = [
-                'images/water-block.png',   // Top row is water
-                'images/stone-block.png',   // Row 1 of 3 of stone
-                'images/stone-block.png',   // Row 2 of 3 of stone
-                'images/stone-block.png',   // Row 3 of 3 of stone
-                'images/grass-block.png',   // Row 1 of 2 of grass
-                'images/grass-block.png'    // Row 2 of 2 of grass
+                'images/grass-block.png',   // Top row is grass
+                'images/stone-block.png',   // Row 1 of 4 of stone
+                'images/stone-block.png',   // Row 2 of 4 of stone
+                'images/stone-block.png',   // Row 3 of 4 of stone
+                'images/stone-block.png',   // Row 4 of 3 of stone
+                'images/grass-block.png'    // Bottom row is grass
             ],
             numRows = 6,
             numCols = 5,
@@ -149,9 +152,11 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
         allEnemies.forEach(function(enemy) {
-            enemy.render();
+            enemy.render(true);
         });
         player.render();
+        player.showScore();
+        star.render();
     }
 
     /* This function does nothing but it could have been a good place to
@@ -172,7 +177,9 @@ var Engine = (function(global) {
         'images/grass-block.png',
         'images/enemy-bug.png',
         'images/enemy-bug-reverse.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+        'images/gem-gold.png',
+        'images/star.png'
     ]);
     Resources.onReady(init);
 

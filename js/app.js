@@ -1,9 +1,9 @@
 // helpers
 var helpers = {};
 helpers.xCanvas = 505;
-helpers.yCanvas = helpers.yTile * helpers.yTilesNum;
-helpers.xTilesNum = 5;
-helpers.yTilesNum = 6;
+helpers.yCanvas = helpers.yTile * helpers.rows;
+helpers.columns = 5;
+helpers.rows = 6;
 helpers.xTile = 101;
 helpers.yTile = 83;
 helpers.xTileCenter = helpers.xTile/2;
@@ -16,6 +16,25 @@ helpers.charHeight = 102;
 helpers.getRandomInt = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+helpers.columnsToXPosition = function(column) {
+    return column * this.xTile - this.xTile;
+};
+helpers.rowsToYPosition = function(row) {
+    return row * this.yTile - this.charHeight;
+};
+helpers.checkIfStarCollected = function(player, star) {
+    if (player.column === star.column && player.row === star.row) {
+        player.collectStar();
+        star.newPosition();
+    }
+};
+helpers.checkForCollision = function(player, allEnemies) {
+    allEnemies.forEach(function(enemy) {
+        if (enemy.column === player.column && enemy.row === player.row) {
+            player.reset();
+        }
+    });
+};
 
 
 /**
@@ -27,14 +46,24 @@ Parent Class for all Game Entities
 var Entity = function(sprite, column, row) {
     console.info('creating an Entity');
     this.sprite = sprite;
-    this.x = column * helpers.xTile - helpers.xTile;
-    this.y = row * helpers.yTile - helpers.charHeight;
+    this.column = column;
+    this.row = row;
+    this.x = helpers.columnsToXPosition(this.column);
+    this.y = helpers.rowsToYPosition(this.row);
 };
 
 
 // Draw the entity on the screen, required method for game
-Entity.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+Entity.prototype.render = function(byXY) {
+    var x, y;
+    if (byXY) {
+        x = this.x;
+        y = this.y
+    } else {
+        x = helpers.columnsToXPosition(this.column);
+        y = helpers.rowsToYPosition(this.row);
+    }
+    ctx.drawImage(Resources.get(this.sprite), x, y);
 };
 
 
@@ -60,9 +89,13 @@ Enemy.prototype.update = function(dt) {
     // all computers.
     this.x += this.speed * dt;
 
+    // recompute column
+    this.column = Math.round(this.x / helpers.xTile) + 1;
+
+
     // if enemy moves off the canvas, let it turn around
     var offCanvasRight = this.x > helpers.xCanvas;
-    var offCanvasLeft = this.x < -helpers.xTile
+    var offCanvasLeft = this.x < -helpers.xTile;
     if (offCanvasRight || offCanvasLeft) {
         this.changeDirection();
         this.randomizeRow();
@@ -70,8 +103,9 @@ Enemy.prototype.update = function(dt) {
 
 };
 Enemy.prototype.randomizeRow = function() {
-    var row = helpers.getRandomInt(2,4);
-    this.y = row * helpers.yTile - helpers.charHeight;
+    var row = helpers.getRandomInt(2,5);
+    this.row = row;
+    this.y = helpers.rowsToYPosition(row);
 };
 Enemy.prototype.changeDirection = function() {
     this.speed = -this.speed;
@@ -83,34 +117,67 @@ Enemy.prototype.changeDirection = function() {
 // This class requires an update(), render() and
 // a handleInput() method.
 var Player = function() {
-    var column = helpers.getRandomInt(1,5);
-    var row = helpers.getRandomInt(5,6);
-    Entity.call(this, 'images/char-boy.png', column, row);
+    this.newPosition();
+    this.starCount = 0;
+    Entity.call(this, 'images/char-boy.png', this.column, this.row);
 };
 Player.prototype = Object.create(Entity.prototype);
 Player.prototype.constructor = Player;
 
-Player.prototype.update = function(dt) {};
+Player.prototype.collectStar = function() {
+    this.starCount += 1;
+    console.info('Yay! Your score is ' + this.starCount);
+};
+Player.prototype.newPosition = function() {
+    this.column = helpers.getRandomInt(1,5);
+    this.row = 6;
+};
+Player.prototype.reset = function() {
+    this.starCount = 0;
+    this.newPosition();
+    console.info('You lost... Score is back to 0');
+};
+Player.prototype.showScore = function() {
+    ctx.fillStyle="yellow";
+    ctx.font = "30px Serif";
+    ctx.fillText("Score: " + this.starCount, 10, 100);
+}
+
 Player.prototype.handleInput = function(key) {
-    if (key == 'right' && this.x < helpers.xTilesNum * helpers.xTile) {
-        return this.x += helpers.xTile;
+    if (key == 'right' && this.column < helpers.columns) {
+        return this.column += 1;
     }
-    if (key == 'left' && this.x > 0) {
-        return this.x -= helpers.xTile;
+    if (key == 'left' && this.column > 1) {
+        return this.column -= 1;
     }
-    if (key == 'down' && this.y < helpers.yTilesNum * helpers.yTile) {
-        return this.y += helpers.yTile;
+    if (key == 'down' && this.row < helpers.rows) {
+        return this.row += 1;
     }
-    if (key == 'up' && this.y > 0) {
-        return this.y -= helpers.yTile;
+    if (key == 'up' && this.row > 1) {
+        return this.row -= 1;
     }
+};
+
+var Star = function() {
+    var column = helpers.getRandomInt(1,5);
+    var row = helpers.getRandomInt(2,5);
+    Entity.call(this, 'images/star.png', column, row);
+};
+Star.prototype = Object.create(Entity.prototype);
+Star.prototype.constructor = Star;
+
+Star.prototype.newPosition = function() {
+    this.column = helpers.getRandomInt(1,5);
+    this.row = helpers.getRandomInt(2,5);
 };
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-var allEnemies = [new Enemy(120), new Enemy(200), new Enemy(220), new Enemy(50)];
+var allEnemies = [new Enemy(120), new Enemy(200), new Enemy(220), new Enemy(60), new Enemy(170)];
+// var allEnemies = [new Enemy(50)];
 var player = new Player();
+var star = new Star();
 
 
 // This listens for key presses and sends the keys to your
