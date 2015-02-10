@@ -47,9 +47,22 @@ helpers.rowsToYPosition = function(row) {
  */
 helpers.checkIfStarCollected = function(player, star) {
     if (player.column === star.column && player.row === star.row) {
-        player.collectStar();
+        player.incrementScore();
         star.newPosition();
-        this.setHighScore(player.starCount);
+        this.setHighScore(player.score);
+    }
+};
+
+/**
+ * Game logic to check whether a the player has arrived at the water
+ * @param {Player} player
+ */
+helpers.checkIfArrivedAtWater = function(player) {
+    if (player.row === 1) {
+        player.incrementScore();
+        star.newPosition();
+        this.setHighScore(player.score);
+        player.newPosition();
     }
 };
 
@@ -58,7 +71,7 @@ helpers.checkIfStarCollected = function(player, star) {
  * @param {Player} player
  * @param {Array} array holding all the enemies
  */
-helpers.checkForCollision = function(player, allEnemies) {
+helpers.checkForEnemyCollision = function(player, allEnemies) {
     allEnemies.forEach(function(enemy) {
         if (enemy.column === player.column && enemy.row === player.row) {
             player.reset();
@@ -191,7 +204,7 @@ Enemy.prototype.changeDirection = function() {
 **/
 var Player = function() {
     this.newPosition();
-    this.starCount = 0;
+    this.score = 0;
     Entity.call(this, 'images/char-boy.png', this.column, this.row);
 };
 Player.prototype = Object.create(Entity.prototype);
@@ -200,9 +213,9 @@ Player.prototype.constructor = Player;
 /**
  * Call this when a player collects a star.
  */
-Player.prototype.collectStar = function() {
-    this.starCount += 1;
-    console.info('Yay! Your score is ' + this.starCount);
+Player.prototype.incrementScore = function() {
+    this.score += 1;
+    console.info('Yay! Your score is ' + this.score);
 };
 
 /**
@@ -217,7 +230,7 @@ Player.prototype.newPosition = function() {
  * Reset the player's position
  */
 Player.prototype.reset = function() {
-    this.starCount = 0;
+    this.score = 0;
     this.newPosition();
     console.info('You lost... Score is back to 0');
 };
@@ -229,7 +242,7 @@ Player.prototype.showScore = function() {
     ctx.fillStyle='yellow';
     ctx.font = '30px Serif';
     ctx.textAlign = 'left';
-    ctx.fillText('Score: ' + this.starCount, 10, 100);
+    ctx.fillText('Score: ' + this.score, 10, 100);
 };
 
 /**

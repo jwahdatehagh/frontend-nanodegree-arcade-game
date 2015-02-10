@@ -97,7 +97,8 @@ var Engine = (function(global) {
 
         // game logic
         helpers.checkIfStarCollected(player, star);
-        helpers.checkForCollision(player, allEnemies);
+        helpers.checkForEnemyCollision(player, allEnemies);
+        helpers.checkIfArrivedAtWater(player);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -111,7 +112,7 @@ var Engine = (function(global) {
          * for that particular row of the game level.
          */
         var rowImages = [
-                'images/grass-block.png',   // Top row is grass
+                'images/water-block.png',   // Top row is water
                 'images/stone-block.png',   // Row 1 of 4 of stone
                 'images/stone-block.png',   // Row 2 of 4 of stone
                 'images/stone-block.png',   // Row 3 of 4 of stone
